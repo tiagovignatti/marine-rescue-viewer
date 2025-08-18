@@ -48,22 +48,12 @@ jobs:
           echo "changed=false" >> $GITHUB_OUTPUT
         fi
     
-    - name: Switch to data-updates branch and commit
+    - name: Commit changes to data-updates branch
       if: steps.verify-changed-files.outputs.changed == 'true'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git fetch origin
-        # Stash any uncommitted changes
-        git stash push -m "temp stash before branch switch"
-        # Create or switch to data-updates branch
-        if git show-ref --verify --quiet refs/remotes/origin/data-updates; then
-          git checkout -B data-updates origin/data-updates
-        else
-          git checkout -b data-updates
-        fi
-        # Apply stashed changes
-        git stash pop || true
         git add .
         git commit -m "🤖 Automated daily data update - $(date '+%Y-%m-%d %H:%M:%S UTC')"
-        git push origin data-updates --force
+        # Force push current state to data-updates (no merging, no conflicts)
+        git push origin HEAD:data-updates --force
